@@ -1,4 +1,4 @@
- The first 3 functions are used to store and retrieve the cache, to avoid constant calls to the Google Maps API server
+// The first 3 functions are used to store and retrieve the cache, to avoid constant calls to the Google Maps API server
 // The cache key for "New York" and "new york  " should be same
 const md5 = (key = '') => {
   const code = key.toLowerCase().replace(/\s/g, '');
