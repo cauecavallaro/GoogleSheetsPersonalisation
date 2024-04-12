@@ -24,7 +24,7 @@ const setCache = (key, value) => {
  * Also works with postcodes.
  * If your result is not correct, you can play with the "region" to find the correct one
  *
- * =GMaps_Lat_Lon("10 Hanover Square, NY", "US")
+ * =GMaps_Lat_Lon("Cork City", "IE")
  * @param {String} address The address to lookup.
  * @param {String} region The region (country code) of the address to lookup.
  * @return {String} The latitude and longitude of the address.
