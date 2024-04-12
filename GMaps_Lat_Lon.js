@@ -24,13 +24,13 @@ const setCache = (key, value) => {
  * Also works with postcodes.
  * If your result is not correct, you can play with the "region" to find the correct one
  *
- * =GOOGLEMAPS_LATLONG("10 Hanover Square, NY", "US")
+ * =GMaps_Lat_Lon("10 Hanover Square, NY", "US")
  * @param {String} address The address to lookup.
  * @param {String} region The region (country code) of the address to lookup.
  * @return {String} The latitude and longitude of the address.
  * @customFunction
  */
-const GOOGLEMAPS_LATLONG = (address, region) => {
+const GMaps_Lat_Lon = (address, region) => {
   // Define the key to search in the cache system
   const key = ['coord', address, region].join(',');
   // Is result in the internal cache?
