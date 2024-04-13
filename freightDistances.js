@@ -1,4 +1,4 @@
-// The first 3 functions are used to store and retrieve the cache, to avoid constant calls to the Google Maps API server
+//The first 3 functions are used to store and retrieve the cache, to avoid constant calls to the Google Maps API server
 // The cache key for "New York" and "new york  " should be same
 const md5 = (key = '') => {
   const code = key.toLowerCase().replace(/\s/g, '');
@@ -29,10 +29,16 @@ function sumOfDistance(arr, col) {
 // creates a new direction finder on maps API
 function mapsWithWaypoints(origin, destination, wayPoints) {
   // Initializes the maps API
+  Logger.log(wayPoints)
   var directions = Maps.newDirectionFinder().setOrigin(origin).setDestination(destination);
-  // loop through the waypoints to add it to the directions finder
-  for (var i = 0; i < wayPoints.length; i++) {
-    directions.addWaypoint(wayPoints[i]);
+  // loop through the waypoints to add it to the directions finder.
+  if (Array.isArray(wayPoints)) {
+    for (var i = 0; i < wayPoints.length; i++) {
+      directions.addWaypoint(wayPoints[i]);
+    }
+  } else if (wayPoints != null) {
+    directions.addWaypoint(wayPoints);
+  } else {
   }
   // calls the maps getDirections function and throws an error if route is not found
   var res = directions.getDirections();
@@ -44,24 +50,40 @@ function mapsWithWaypoints(origin, destination, wayPoints) {
   }
 }
 
+function transpose(matrix) {
+  const nElem = matrix.length * matrix[0].length;
+  let newArr = [];
+  for (let i = 0; i < matrix.length; i++) {
+    for (let j = 0; j < matrix[i].length; j++) {
+      let tempArray = [matrix[i][j]];
+      if (tempArray != "") {
+        newArr.push(tempArray);
+      }
+    }
+  }
+  return newArr;
+}
 
 /**
  * A custom function that gets the freight distance between two addresses.
  * It was scripted to get the distances by Road and by Sea when ferry is required for the freight.
- * Use the "waypoints" to add the geo location of the ferry ports used for freights, if known.
- * If not know, leave empty, the API will return you the best distances based on car routes.
+ * Use the "waypoints" to add the geo location of the ferry ports used for freights, if known or required.
  * 
  *  =freightDistances("Paris, FR", "Fermoy,IE", B2:C2)
  * 
  * @param {String} origin - The starting address coordinates.
  * @param {String} destination - The ending address coordinates.
- * @param {String or Array} wayPoints - The wayPoints coordinates, referenced by cells. If not needed, leave empty.
- * @return {Number} Distance by Road and Distance by Ferry.
+ * @param {Object} wayPoints - [OPTIONAL] The wayPoints coordinates, referenced by cells. If not needed, leave empty.
+ * @return Distance by Road and Distance by Ferry.
  * @customFunction
  */
 function freightDistances(origin, destination, wayPoints) {
   // Get the raw directions information.
   var results = new Array(1);
+  Logger.log(Array.isArray(wayPoints));
+  /*var origin = "Cork, IE";
+  var destination = "Paris, IE";
+  var wayPoints = [["Dublin,IE","Bootle,UK","Dover Ferries, UK", "Dunkirk Ferry Terminal, FR"]];*/
   // Checks for the results in cache
   const key = ['results', origin, destination, wayPoints].join(',');
   //Logger.log(key);
@@ -76,12 +98,18 @@ function freightDistances(origin, destination, wayPoints) {
     console.log(results);
     return results;
   }
+  if (Array.isArray(wayPoints) === true) {
+    wp = transpose(wayPoints);
+  } else {
+    wp = wayPoints;
+  }
+  Logger.log(wp)
   // Calls the function to generate the routes
-  const directions = mapsWithWaypoints(origin, destination, wayPoints);
+  const directions = mapsWithWaypoints(origin, destination, wp);
   // Creates an array to limit the size of the routes
   const routes = directions.routes[0];
   //Logger.log(routes);
-  //Logger.log(Object.keys(routes));
+  Logger.log(Object.keys(routes));
   // Saves the polyline for future map view if required
   //const polyline = routes.overview_polyline;
   //Logger.log(polyline);
@@ -91,7 +119,7 @@ function freightDistances(origin, destination, wayPoints) {
   for (let leg of routes.legs) {
     legs.push(leg);
   }
-  //Logger.log((legs.length));
+  Logger.log((legs.length));
   // Creates an array with the steps containing instructions and distance only
   const steps = [];
   for (var i = 0; i < legs.length; i++) {
@@ -103,6 +131,7 @@ function freightDistances(origin, destination, wayPoints) {
       ]);
     }
   }
+  Logger.log(steps)
   // Loop through the instructions to find where ferry is found, then add the distances to the variable withFerry
   var withFerry = 0;
   const instructions = steps.map((row) => row[0]);
@@ -111,6 +140,7 @@ function freightDistances(origin, destination, wayPoints) {
     //var index2 = instructions[i].findIndex(step => step.includes(' ferry'));
     if (instructions[i].includes(" ferry") != false) {
       withFerry = withFerry + steps[i][1];
+      Logger.log(steps[i][1])
     }
   }
   //Logger.log(withFerry)
@@ -121,7 +151,7 @@ function freightDistances(origin, destination, wayPoints) {
   ans[1] = withFerry;
   results[0] = ans;
   // Store the result in internal cache for future
-  //setCache(key, results.join(","));
+  setCache(key, results.join(","));
   Logger.log(results);
   return results;
 }
